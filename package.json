@@ -1,0 +1,21 @@
+{
+  "name": "tfp-bot",
+  "version": "1.0.0",
+  "description": "Today's Front Pages Twitter bot. @FrontPageBot",
+  "main": "src/index.js",
+  "scripts": {
+    "jshint": "jshint src/*.js",
+    "dev": "watch 'npm run jshint' src"
+  },
+  "keywords": [
+    "today",
+    "newspaper",
+    "twitter"
+  ],
+  "author": "Jacob M. Roufa",
+  "license": "MIT",
+  "devDependencies": {
+    "jshint": "^2.8.0",
+    "watch": "^0.16.0"
+  }
+}
