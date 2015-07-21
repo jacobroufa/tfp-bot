@@ -44,11 +44,10 @@ function getPage( err, res, body ) {
 
       tweet({
         img: b64img,
-        text: title + ' - ' + today.toDateString() + ' - ' + loc
+        text: title + ' - ' + today.toDateString() + ' - ' + loc,
+        callback: callback
       });
     });
-
-    callback();
 
   });
 
