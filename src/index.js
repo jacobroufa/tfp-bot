@@ -2,7 +2,7 @@
 
 var request = require( 'request' );
 var cheerio = require( 'cheerio' );
-var sleep = require( 'sleep' );
+var async = require( 'async' );
 
 var creds = require( '../credentials.js' );
 var tweet = require( './tweet.js' )( creds );
@@ -23,9 +23,9 @@ function getPage( err, res, body ) {
   var $ = cheerio.load( body );
   var imgs = $( 'p.thumbnail a img' );
 
-  imgs.each( function( i ) {
+  async.eachSeries( imgs, function( img, callback ) {
 
-    var el = $( this );
+    var el = $( img );
     var src = el.attr( 'src' );
     var largeSrc = src.replace( '/med', '/lg' );
     var title = el.parents( 'p.thumbnail' ).siblings( 'h4' ).text().trim();
@@ -37,7 +37,7 @@ function getPage( err, res, body ) {
       encoding: 'binary'
     }, function( err, res, body ) {
       if ( err ) {
-        throw err;
+        callback( err );
       }
 
       var b64img = new Buffer( body, 'binary' ).toString( 'base64' );
@@ -47,6 +47,8 @@ function getPage( err, res, body ) {
         text: title + ' - ' + today.toDateString() + ' - ' + loc
       });
     });
+
+    callback();
 
   });
 
