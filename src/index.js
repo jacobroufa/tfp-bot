@@ -44,9 +44,8 @@ function getPage( err, res, body ) {
 
       tweet({
         img: b64img,
-        text: title + ' - ' + today.toDateString() + ' - ' + loc,
-        callback: callback
-      });
+        text: title + ' - ' + today.toDateString() + ' - ' + loc
+      }, callback );
     });
 
   });

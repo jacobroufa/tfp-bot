@@ -7,13 +7,13 @@ module.exports = function( creds ) {
 
   var T = new Twit( creds );
 
-  return function( status ) {
+  return function( status, callback ) {
 
     console.log( 'posting ' + status.text );
 
     return T.post( 'media/upload', { media_data: status.img }, function( err, data, res ) {
       if ( err ) {
-        status.callback( err );
+        callback( err );
       }
 
       var mediaId = data.media_id_string;
@@ -24,12 +24,12 @@ module.exports = function( creds ) {
 
       return T.post( 'statuses/update', update, function( err, data, res ) {
         if ( err ) {
-          status.callback( err );
+          callback( err );
         }
 
         console.log( 'posted ' + status.text );
 
-        status.callback();
+        callback();
       });
     });
 
