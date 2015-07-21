@@ -23,7 +23,7 @@ function getPage( err, res, body ) {
   var $ = cheerio.load( body );
   var imgs = $( 'p.thumbnail a img' );
 
-  async.eachSeries( imgs, function( img, callback ) {
+  async.eachLimit( imgs, 10, function( img, callback ) {
 
     var el = $( img );
     var src = el.attr( 'src' );
