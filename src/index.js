@@ -37,7 +37,7 @@ function getPage( err, res, body ) {
       encoding: 'binary'
     }, function( err, res, body ) {
       if ( err ) {
-        callback( err );
+        console.log( err );
       }
 
       var b64img = new Buffer( body, 'binary' ).toString( 'base64' );
@@ -45,7 +45,9 @@ function getPage( err, res, body ) {
       tweet({
         img: b64img,
         text: title + ' - ' + today.toDateString() + ' - ' + loc
-      }, callback );
+      });
+
+      callback();
     });
 
   });
