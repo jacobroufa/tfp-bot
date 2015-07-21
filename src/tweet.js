@@ -11,12 +11,10 @@ module.exports = function( creds ) {
 
     console.log( 'posting ' + status.text );
 
-    T.post( 'media/upload', { media_data: status.img }, function( err, data, res ) {
+    return T.post( 'media/upload', { media_data: status.img }, function( err, data, res ) {
       if ( err ) {
-        console.log( 'error uploading image to twitter', err, res.statusCode );
+        throw err;
       }
-
-      console.log( 'media upload ' + status.img + ' to twitter' );
 
       var mediaId = data.media_id_string;
       var update = {
@@ -24,9 +22,8 @@ module.exports = function( creds ) {
         media_ids: [mediaId]
       };
 
-      T.post( 'statuses/update', update, function( err, data, res ) {
-        console.log( 'posted update to twitter' );
-        console.log( err, data, res );
+      return T.post( 'statuses/update', update, function( err, data, res ) {
+        console.log( 'posted ' + status.text );
       });
     });
 
