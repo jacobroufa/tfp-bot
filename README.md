@@ -5,6 +5,12 @@
 This bot posts the day's front pages once every day. Content is obtained from [Newseum](http://www.newseum.org/).
 
 
+## TODO
+
++ check timeline to ensure no double-posts
++ resume functionality
+
+
 ## Credentials
 
 This bot requires a Twitter API key, as can be found on their [developer site](https://apps.twitter.com/app/new).
