@@ -4,7 +4,7 @@ var Twit = require( 'twit' );
 var request = require( 'request' );
 var async = require( 'async' );
 
-module.exports = function( creds ) {
+module.exports = function tweet( creds ) {
 
   var T = new Twit( creds );
 
