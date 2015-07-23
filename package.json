@@ -19,6 +19,8 @@
     "watch": "^0.16.0"
   },
   "dependencies": {
+    "ampersand-collection": "^1.4.5",
+    "ampersand-state": "^4.5.6",
     "async": "^1.4.0",
     "cheerio": "^0.19.0",
     "request": "^2.60.0",
