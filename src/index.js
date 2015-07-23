@@ -4,6 +4,12 @@ var request = require( 'request' );
 var cheerio = require( 'cheerio' );
 var async = require( 'async' );
 
+var creds = require( '../credentials.js' );
+var tweet = require( './tweet.js' )( creds );
+
+var data = require( './data.js' );
+
+
 var todaysFrontPage = function todaysFrontPage() {
 
   if ( !( this instanceof todaysFrontPage )) {
@@ -12,27 +18,23 @@ var todaysFrontPage = function todaysFrontPage() {
 
   var self = this;
 
-  this.creds = require( '../credentials.js' );
-  this.data = require( './data.js' );
-
   this.url = 'http://www.newseum.org/todaysfrontpages/?tfp_show=all';
   this.today = new Date().toDateString();
 
-  this.pages = new this.data.Pages();
-  this.tweets = new this.data.Tweets();
+  this.pages = new data.Pages();
+  this.tweets = new data.Tweets();
 
   this.tweetQueue = async.queue( self.sendTweets.bind( self ), 10 );
 
-  return {
-    init: function init() {
-      async.series([
-        self.getFrontPages.bind( self ),
-        self.getTweets.bind( self ),
-        self.prepareTweets.bind( self )
-      ]);
-    }
-  };
+  async.series([
+    self.getFrontPages.bind( self ),
+    self.getTweets.bind( self ),
+    self.prepareTweets.bind( self )
+  ]);
+
+  return this;
 };
+
 
 todaysFrontPage.prototype.getFrontPages = function getFrontPages( callback ) {
 
@@ -79,71 +81,69 @@ todaysFrontPage.prototype.getTweets = function getTweets( callback ) {
 
   console.log( 'getting tweets' );
 
-  var tweet = require( './tweet.js' )( this.creds );
-
   tweet.getTweets( this, callback );
 
 };
 
 todaysFrontPage.prototype.prepareTweets = function prepareTweets( callback ) {
-  console.log( 'fetching images' );
 
-  this.tweetQueue.push( 'image' );
+  var self = this;
 
-  callback();
-};
+  console.log( 'fetching pages' );
 
-todaysFrontPage.prototype.sendTweets = function sendTweets( tweet, callback ) {
-  console.log( 'sending tweets' );
+  if ( !this.tweets.length ) {
+    async.eachLimit( this.pages.serialize(), 10, processPage, function() {
+      console.log( 'processed all the pages' );
 
-  callback();
-};
+      callback();
+    });
+  }
 
+  function processPage( page, localCallback ) {
+    var text = page.title + ' - ' + self.today + ' - ' + page.loc;
 
-var fp = todaysFrontPage();
+    // if ( we cant find `text` in the tweets gathered for the day ) {
+    if ( true ) {
+      self.tweetQueue.push({
+        img: page.src,
+        text: text
+      }, function( err ) {
+        if ( err ) {
+          console.log( err );
+        }
 
-fp.init();
-
-
-
-/* function getPage( err, res, body ) {
-
-
-  var timeline = tweet.getTweets();
-
-  console.log( timeline );
-  return;
-
-  async.eachLimit( imgs, 10, function( img, callback ) {
-
-    var el = $( img );
-    var src = el.attr( 'src' );
-    var largeSrc = src.replace( '/med', '/lg' );
-    var title = el.parents( 'p.thumbnail' ).siblings( 'h4' ).text().trim();
-    var loc = el.parents( 'p.thumbnail' ).siblings( 'div' ).text().trim();
-
-    if ( title in timeline ) {
-      return;
+        console.log( 'sent tweet' );
+      });
     }
 
-    request({
-      url: largeSrc,
-      encoding: 'binary'
-    }, function( err, res, body ) {
-      if ( err ) {
-        console.log( err );
-      }
+    localCallback();
+  }
 
-      var b64img = new Buffer( body, 'binary' ).toString( 'base64' );
+};
 
-      tweet.update({
-        img: b64img,
-        text: title + ' - ' + today + ' - ' + loc
-      }, callback );
-    });
+todaysFrontPage.prototype.sendTweets = function sendTweets( queuedTweet, callback ) {
 
-  });
+  console.log( 'sending tweet' );
 
-} */
+  request({
+    url: queuedTweet.img,
+    encoding: 'binary'
+  }, encodeImageAndTweet );
 
+  function encodeImageAndTweet( err, res, body ) {
+    if ( err ) {
+      console.log( err );
+    }
+
+    var b64img = new Buffer( body, 'binary' ).toString( 'base64' );
+
+    tweet.update({
+      img: b64img,
+      text: queuedTweet.text
+    }, callback );
+  }
+
+};
+
+todaysFrontPage();
 
