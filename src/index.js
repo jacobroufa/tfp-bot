@@ -24,11 +24,14 @@ var todaysFrontPage = function todaysFrontPage() {
   this.pages = new data.Pages();
   this.tweets = new data.Tweets();
 
+  this.tweetLimit = 50;
+  this.tweetCount = 0;
+
   this.tweetQueue = async.queue( self.sendTweets.bind( self ), 10 );
 
   async.series([
-    self.getFrontPages.bind( self ),
     self.getTweets.bind( self ),
+    self.getFrontPages.bind( self ),
     self.prepareTweets.bind( self )
   ]);
 
@@ -36,9 +39,18 @@ var todaysFrontPage = function todaysFrontPage() {
 };
 
 
+todaysFrontPage.prototype.getTweets = function getTweets( callback ) {
+
+  console.log( 'getting tweets' );
+
+  tweet.getTweets( this, callback );
+
+};
+
 todaysFrontPage.prototype.getFrontPages = function getFrontPages( callback ) {
 
   var self = this;
+  var numTweets = self.tweets.length;
 
   console.log( 'getting the front pages' );
 
@@ -53,7 +65,7 @@ todaysFrontPage.prototype.getFrontPages = function getFrontPages( callback ) {
     var pages = $( 'p.thumbnail a img' );
 
     async.eachSeries( pages, savePage, function() {
-      console.log( 'processed ' + self.pages.length + ' pages' );
+      console.log( 'got ' + self.pages.length + ' pages of ' + pages.length + ' total' );
 
       callback();
     });
@@ -65,23 +77,35 @@ todaysFrontPage.prototype.getFrontPages = function getFrontPages( callback ) {
       var title = el.parents( 'p.thumbnail' ).siblings( 'h4' ).text().trim();
       var loc = el.parents( 'p.thumbnail' ).siblings( 'div' ).text().trim();
 
-      self.pages.add({
-        src: largeSrc,
-        title: title,
-        loc: loc
-      });
+      if ( numTweets && !tweeted( title )) {
+        addPage();
+      } else if ( !numTweets ) {
+        addPage();
+      }
 
       localCallback();
+
+      function addPage() {
+        self.pages.add({
+          src: largeSrc,
+          title: title,
+          loc: loc
+        });
+      }
     }
   }
 
-};
+  function tweeted( title ) {
+    var hasBeenTweeted = false;
 
-todaysFrontPage.prototype.getTweets = function getTweets( callback ) {
+    self.tweets.each( function( tweet ) {
+      if ( tweet.text.search( title ) !== -1 ) {
+        hasBeenTweeted = true;
+      }
+    });
 
-  console.log( 'getting tweets' );
-
-  tweet.getTweets( this, callback );
+    return hasBeenTweeted;
+  }
 
 };
 
@@ -89,21 +113,18 @@ todaysFrontPage.prototype.prepareTweets = function prepareTweets( callback ) {
 
   var self = this;
 
-  console.log( 'fetching pages' );
+  console.log( 'preparing tweets' );
 
-  if ( !this.tweets.length ) {
-    async.eachLimit( this.pages.serialize(), 10, processPage, function() {
-      console.log( 'processed all the pages' );
+  async.eachSeries( this.pages.serialize(), processPage, function() {
+    console.log( 'prepared all the tweets' );
 
-      callback();
-    });
-  }
+    callback();
+  });
 
   function processPage( page, localCallback ) {
     var text = page.title + ' - ' + self.today + ' - ' + page.loc;
 
-    // if ( we cant find `text` in the tweets gathered for the day ) {
-    if ( true ) {
+    if ( self.tweetCount < self.tweetLimit ) {
       self.tweetQueue.push({
         img: page.src,
         text: text
@@ -113,10 +134,16 @@ todaysFrontPage.prototype.prepareTweets = function prepareTweets( callback ) {
         }
 
         console.log( 'sent tweet' );
-      });
-    }
 
-    localCallback();
+        setTimeout( function() {
+          localCallback();
+        }, 15000 );
+      });
+
+      self.tweetCount++;
+    } else {
+      callback();
+    }
   }
 
 };

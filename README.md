@@ -7,9 +7,9 @@ This bot posts the day's front pages once every day. Content is obtained from [N
 
 ## TODO
 
-+ check timeline to ensure no double-posts
-+ resume functionality
-
++ Filter to “top 50” cities (or maybe state capitals?)
+  + at 50 cities, we can do one every 14 minutes and have it done in a 12hr period
++ Request a paper -- e.g. tweet city or paper name @FrontPageBot and get the paper return tweeted to you
 
 ## Credentials
 

@@ -3,15 +3,16 @@
 var Twit = require( 'twit' );
 var async = require( 'async' );
 
-module.exports = function( creds ) {
+module.exports = function tweet( creds ) {
 
   var T = new Twit( creds );
 
   return {
-    getTweets: function( context, callback ) {
+    getTweets: function getTweets( context, callback ) {
 
       var returnedTweets;
       var existingTweets = context.tweets.length;
+      var self = this;
 
       T.get( 'statuses/home_timeline', {
         count: 200,
@@ -26,6 +27,8 @@ module.exports = function( creds ) {
 
         // save this, because there could be less than `count` returned
         returnedTweets = data.length;
+
+        console.log( 'returned ' + returnedTweets + ' tweets' );
 
         async.each( data, processTweet, loopOrCallback );
       }
@@ -53,12 +56,12 @@ module.exports = function( creds ) {
 
           callback();
         } else {
-          // call the getTweets function again!
+          getTweets( context, callback );
         }
 
       }
     },
-    update: function( status, callback ) {
+    update: function update( status, callback ) {
 
       console.log( 'posting ' + status.text );
 
