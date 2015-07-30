@@ -1,93 +1,73 @@
 'use strict';
 
-var Twit = require( 'twit' );
 var async = require( 'async' );
+var request = require( 'request' );
 
-module.exports = function tweet( creds ) {
+module.exports = function tweet( queuedTweet, callback ) {
 
-  var T = new Twit( creds );
+  var self = this;
 
-  return {
-    getTweets: function getTweets( context, callback ) {
+  if ( queuedTweet.img ) {
+    request({
+      url: queuedTweet.img,
+      encoding: 'binary'
+    }, encodeImageAndTweet );
+  } else {
+    sendTweet( queuedTweet.text, callback );
+  }
 
-      var returnedTweets;
-      var existingTweets = context.tweets.length;
-      var self = this;
-
-      T.get( 'statuses/home_timeline', {
-        count: 200,
-        trim_user: true,
-        exclude_replies: true
-      }, processTweets );
-
-      function processTweets( err, data, res ) {
-        if ( err ) {
-          console.log( err );
-        }
-
-        // save this, because there could be less than `count` returned
-        returnedTweets = data.length;
-
-        console.log( 'returned ' + returnedTweets + ' tweets' );
-
-        async.each( data, processTweet, loopOrCallback );
-      }
-
-      function processTweet( status, localCallback ) {
-        var datestamp = new Date( status.created_at ).toDateString();
-
-        if ( datestamp == context.today ) {
-          context.tweets.add({
-            id: status.id,
-            text: status.text
-          });
-        }
-
-        localCallback();
-      }
-
-      function loopOrCallback() {
-        var processedTweets = context.tweets.length - existingTweets;
-
-        console.log( 'processed ' + processedTweets + ' tweets' );
-
-        if ( processedTweets < returnedTweets ) {
-          console.log( 'processed ' + context.tweets.length + ' tweets total' );
-
-          callback();
-        } else {
-          getTweets( context, callback );
-        }
-
-      }
-    },
-    update: function update( status, callback ) {
-
-      console.log( 'posting ' + status.text );
-
-      return T.post( 'media/upload', { media_data: status.img }, function( err, data, res ) {
-        if ( err ) {
-          console.log( err );
-        }
-
-        var mediaId = data.media_id_string;
-        var update = {
-          status: status.text,
-          media_ids: [mediaId]
-        };
-
-        return T.post( 'statuses/update', update, function( err, data, res ) {
-          if ( err ) {
-            console.log( err );
-          }
-
-          console.log( 'posted ' + status.text );
-
-          callback();
-        });
-      });
-
+  function encodeImageAndTweet( err, res, body ) {
+    if ( err ) {
+      console.log( err );
     }
-  };
+
+    var b64img = new Buffer( body, 'binary' ).toString( 'base64' );
+
+    sendTweet({
+      img: b64img,
+      text: queuedTweet.text
+    }, callback );
+  }
+
+  function sendTweet( status, callback ) {
+
+    var statusHasImage = ( typeof status === 'object' );
+    var text = ( statusHasImage ? status.text : status );
+
+    console.log( 'posting ' + text );
+
+    return statusHasImage ?
+      self.T.post( 'media/upload', { media_data: status.img }, uploadImage ) :
+      postUpdate({ status: status }, postUpdateCallback );
+
+    function uploadImage( err, data, res ) {
+      if ( err ) {
+        console.log( err );
+      }
+
+      var mediaId = data.media_id_string;
+      var update = {
+        status: status.text,
+        media_ids: [mediaId]
+      };
+
+      return postUpdate( update, postUpdateCallback );
+    }
+
+    function postUpdate( update, callback ) {
+      return self.T.post( 'statuses/update', update, callback );
+    }
+
+    function postUpdateCallback( err, data, res ) {
+      if ( err ) {
+        console.log( err );
+      }
+
+      console.log( 'posted ' + text );
+
+      return callback();
+    }
+
+  }
 
 };
