@@ -7,9 +7,13 @@ This bot posts the day's front pages once every day. Content is obtained from [N
 
 ## TODO
 
-+ Filter to “top 50” cities (or maybe state capitals?)
-  + at 50 cities, we can do one every 14 minutes and have it done in a 12hr period
-+ Request a paper -- e.g. tweet city or paper name @FrontPageBot and get the paper return tweeted to you
++ Build two lists of tweets that alternately get tweeted on the half hour -- most popular, least popular
+  + Most popular tweets are refined by # of retweets, favs and requests
+  + Least popular tweets are randomly chosen from list of lowest ranked
+  + Most popular are initially ranked by [circulation](https://en.wikipedia.org/wiki/List_of_newspapers_in_the_United_States_by_circulation)
++ Request a paper by city/state (request by paper name initially complete)
++ Reply to multiple Twitter users
++ Research newseum’s posting schedule
 
 ## Credentials
 
@@ -25,8 +29,7 @@ This bot requires a Twitter API key, as can be found on their [developer site](h
 
 ## Deployment
 
-
-Add this line to your crontab, changing the path or time as necessary `0 09 * * * node /path/to/tfp-bot/src/index.js`.
+Deploy using [forever](https://www.npmjs.com/package/forever) to ensure the process stays alive.
 
 
 ## Contributing

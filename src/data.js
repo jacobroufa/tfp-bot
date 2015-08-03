@@ -12,7 +12,8 @@ var data = function() {
     }
   });
   var Pages = Collection.extend({
-    model: Page
+    model: Page,
+    indexes: ['title', 'loc']
   });
   var Tweet = State.extend({
     props: {

@@ -27,74 +27,47 @@ var todaysFrontPage = function todaysFrontPage() {
 
   this.T = new Twit( creds );
 
+  // make sure the queue is available early
   this.tweetQueue = async.queue( self.tweet.bind( self ), 10 );
 
   this.setTodayCron = cron.scheduleJob( '0 0 * * *', function() {
     this.today = new Date().toDateString();
   }, null, self );
 
+  // TODO: analyze newseum's posting habits -- maybe this only needs to happen a few times?
   this.frontPageCron = cron.scheduleJob( '58,28 6-20 * * *', self.getFrontPages, null, self );
 
   this.popularTweetCron = cron.scheduleJob( '0 8-21 * * *', self.sendPopularTweet, null, self );
   this.leastTweetCron = cron.scheduleJob( '30 8-20 * * *', self.sendLeastTweet, null, self );
 
   async.series([
+    // do I need to getTweets anymore?
     self.getTweets.bind( self ),
-    self.getFrontPages.bind( self ),
-    self.prepareTweets.bind( self )
+    self.getFrontPages.bind( self )
   ]);
+
+  this.listenForQueries.call( self );
 
   return this;
 };
 
 // TODO: make this a thing
-todaysFrontPage.prototype.sendPopularTweet = function() {};
-todaysFrontPage.prototype.sendLeastTweet = function() {};
+todaysFrontPage.prototype.sendPopularTweet = function() {
+  console.log( 'sent popular tweet' );
+};
+todaysFrontPage.prototype.sendLeastTweet = function() {
+  console.log( 'sent least popular tweet' );
+};
 
 todaysFrontPage.prototype.getTweets = require( './get-tweets.js' );
+
+todaysFrontPage.prototype.prepareTweet = require( './prepare-tweet.js' );
 
 todaysFrontPage.prototype.tweet = require( './tweet.js' );
 
 todaysFrontPage.prototype.getFrontPages = require( './get-front-pages.js' );
 
-todaysFrontPage.prototype.prepareTweets = function prepareTweets( callback ) {
-
-  var self = this;
-
-  console.log( 'preparing tweets' );
-
-  async.eachSeries( this.pages.serialize(), processPage, function() {
-    console.log( 'prepared all the tweets' );
-
-    callback();
-  });
-
-  function processPage( page, localCallback ) {
-    var text = page.title + ' - ' + self.today + ' - ' + page.loc;
-
-    if ( self.tweetCount < self.tweetLimit ) {
-      self.tweetQueue.push({
-        img: page.src,
-        text: text
-      }, function( err ) {
-        if ( err ) {
-          console.log( err );
-        }
-
-        console.log( 'sent tweet' );
-
-        setTimeout( function() {
-          localCallback();
-        }, 15000 );
-      });
-
-      self.tweetCount++;
-    } else {
-      callback();
-    }
-  }
-
-};
+todaysFrontPage.prototype.listenForQueries = require( './listen-for-queries.js' );
 
 todaysFrontPage();
 
