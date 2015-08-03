@@ -14,6 +14,7 @@ This bot posts the day's front pages once every day. Content is obtained from [N
 + Request a paper by city/state (request by paper name initially complete)
 + Reply to multiple Twitter users
 + Research newseum’s posting schedule
++ Add state via database of some sort, and account for that when fetching tweets/pages
 
 ## Credentials
 

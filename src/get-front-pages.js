@@ -37,6 +37,7 @@ module.exports = function getFrontPages( callback ) {
     var title = el.parents( 'p.thumbnail' ).siblings( 'h4' ).text().trim();
     var loc = el.parents( 'p.thumbnail' ).siblings( 'div' ).text().trim();
 
+    // TODO: account for pages that already exist in the self.pages collection
     if ( numTweets && !tweeted( title )) {
       addPage( largeSrc, title, loc );
     } else if ( !numTweets ) {
