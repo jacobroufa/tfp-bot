@@ -30,7 +30,8 @@ module.exports = function listenForQueries() {
           title: page[0].title,
           src: page[0].src,
           loc: page[0].loc,
-          mentions: replyTo
+          mentions: replyTo,
+          replyTo: tweet.id
         }, function(){});
       } else {
         console.log( inquiry );

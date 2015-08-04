@@ -51,6 +51,10 @@ module.exports = function tweet( queuedTweet, callback ) {
         media_ids: [mediaId]
       };
 
+      if ( queuedTweet.replyTo ) {
+        update.in_reply_to_status_id = queuedTweet.replyTo;
+      }
+
       return postUpdate( update, postUpdateCallback );
     }
 

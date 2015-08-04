@@ -8,10 +8,16 @@ module.exports = function prepareTweet( page, callback ) {
   var mentions = page.mentions + ' ' || '';
   var text = mentions + page.title + ' - ' + self.today + ' - ' + page.loc;
 
-  self.tweetQueue.push({
+  var tweet = {
     img: page.src,
     text: text
-  }, function( err ) {
+  };
+
+  if ( mentions ) {
+    tweet.replyTo = page.replyTo;
+  }
+
+  self.tweetQueue.push( tweet, function( err ) {
     if ( err ) {
       console.log( err );
     }
