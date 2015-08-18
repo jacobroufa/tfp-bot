@@ -5,7 +5,9 @@
 module.exports = function prepareTweet( page, callback ) {
 
   var self = this;
-  var mentions = page.mentions + ' ' || '';
+  var mentions = page.mentions.reduce( function( res, mention ) {
+    return res + mention + ' ';
+  }, '' ) || '';
   var text = mentions + page.title + ' - ' + self.today + ' - ' + page.loc;
 
   var tweet = {

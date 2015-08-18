@@ -14,14 +14,26 @@ module.exports = function listenForQueries() {
     if ( tweet.user.screen_name !== 'FrontPageBot' ) {
 
       // TODO: filter out other screen names and add to replyTo
-      var inquiry = tweet.text.replace( /@FrontPageBot /i, '', 'i');
+      var userNames = new RegExp( /(@\w+) /gi );
+      var inquiry = tweet.text.replace( userNames, '' );
       var replyTo = '@' + tweet.user.screen_name;
+
+      var mentions = tweet.text
+          .match( userNames )
+          .map( function( mention ) {
+            return mention.trim();
+          })
+          .filter( function( mention ) {
+            return mention !== '@FrontPageBot';
+          });
 
       var page = self.pages.filter( function findPageMatch( page ) {
         var titleMatchRegex = new RegExp( inquiry, 'gi' );
 
         return ( page.title.search( titleMatchRegex ) >= 0 );
       });
+
+      mentions.push( replyTo );
 
       console.log( tweet.text, page );
 
@@ -30,7 +42,7 @@ module.exports = function listenForQueries() {
           title: page[0].title,
           src: page[0].src,
           loc: page[0].loc,
-          mentions: replyTo,
+          mentions: mentions,
           replyTo: tweet.id_str
         }, function(){});
       } else {
