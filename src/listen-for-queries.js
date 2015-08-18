@@ -31,7 +31,7 @@ module.exports = function listenForQueries() {
           src: page[0].src,
           loc: page[0].loc,
           mentions: replyTo,
-          replyTo: tweet.id
+          replyTo: tweet.id_str
         }, function(){});
       } else {
         console.log( inquiry );
