@@ -33,7 +33,7 @@ module.exports = function listenForQueries() {
         return ( page.title.search( titleMatchRegex ) >= 0 );
       });
 
-      mentions.push( replyTo );
+      mentions.unshift( replyTo );
 
       console.log( tweet.text, page );
 
